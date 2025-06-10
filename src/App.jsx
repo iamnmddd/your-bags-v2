@@ -1,74 +1,43 @@
-import { useEffect, useState } from "react";
-import { GripVertical, X } from "lucide-react";
-import { DndContext, closestCenter } from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import Select from "react-select";
-import numeral from "numeral";
+import { useState, useEffect } from "react";
 
-const COINGECKO_LIST = "https://api.coingecko.com/api/v3/coins/list";
-const COINGECKO_PRICE =
-  "https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&ids=";
-const COINGECKO_LOGO =
-  "https://api.coingecko.com/api/v3/coins/"; // then append {id} and fetch .image.small
+const COINGECKO_API = "https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&ids=";
 
 export default function App() {
-  const [coinList, setCoinList] = useState([]);
-  const [selectedCoin, setSelectedCoin] = useState(null);
+  const [coinInput, setCoinInput] = useState("");
   const [portfolio, setPortfolio] = useState(() => {
-    const saved = localStorage.getItem("yourBags");
+    const saved = localStorage.getItem("myBags");
     return saved ? JSON.parse(saved) : [];
   });
   const [prices, setPrices] = useState({});
-  const [logos, setLogos] = useState({});
 
   useEffect(() => {
-    fetch(COINGECKO_LIST)
-      .then((res) => res.json())
-      .then((data) => setCoinList(data));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("yourBags", JSON.stringify(portfolio));
+    localStorage.setItem("myBags", JSON.stringify(portfolio));
   }, [portfolio]);
 
   useEffect(() => {
     if (portfolio.length === 0) return;
     const ids = portfolio.map((coin) => coin.id).join(",");
-    fetch(COINGECKO_PRICE + ids)
+    fetch(COINGECKO_API + ids)
       .then((res) => res.json())
       .then((data) => setPrices(data));
-
-    Promise.all(
-      portfolio.map((coin) =>
-        fetch(COINGECKO_LOGO + coin.id)
-          .then((res) => res.json())
-          .then((data) => ({ id: coin.id, logo: data.image.small }))
-      )
-    ).then((results) => {
-      const logosMap = {};
-      results.forEach(({ id, logo }) => {
-        logosMap[id] = logo;
-      });
-      setLogos(logosMap);
-    });
   }, [portfolio]);
 
-  const addCoin = () => {
-    if (!selectedCoin) return;
-    if (portfolio.some((coin) => coin.id === selectedCoin.value)) return;
-    const newCoin = {
-      id: selectedCoin.value,
-      name: selectedCoin.label,
-      quantity: 1,
-    };
-    setPortfolio([...portfolio, newCoin]);
-    setSelectedCoin(null);
+  const addCoin = async () => {
+    if (!coinInput) return;
+    try {
+      const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coinInput}`);
+      if (!res.ok) throw new Error("Coin not found");
+      const data = await res.json();
+      const coin = {
+        id: data.id,
+        name: data.name,
+        quantity: 1,
+      };
+      setPortfolio((prev) => [...prev, coin]);
+      setCoinInput("");
+    } catch (err) {
+      alert("Coin not found");
+    }
   };
 
   const updateQuantity = (id, quantity) => {
@@ -77,95 +46,16 @@ export default function App() {
     );
   };
 
-  const deleteCoin = (id) => {
-    setPortfolio((prev) => prev.filter((coin) => coin.id !== id));
-  };
-
-  const getTotalValue = () => {
-    return portfolio.reduce((sum, coin) => {
-      const price = prices[coin.id]?.usd || 0;
-      return sum + coin.quantity * price;
-    }, 0);
-  };
-
-  const options = coinList.map((coin) => ({
-    value: coin.id,
-    label: `${coin.name} (${coin.symbol.toUpperCase()})`,
-  }));
-
-  function SortableItem({ coin }) {
-    const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id: coin.id });
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-    };
-
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        {...attributes}
-        {...listeners}
-        className="bg-white/10 backdrop-blur-lg p-3 rounded-lg shadow-lg flex items-center justify-between w-full border border-white/20"
-      >
-        <div className="flex items-center gap-3">
-          <img
-            src={logos[coin.id]}
-            alt="logo"
-            className="w-6 h-6 rounded-full"
-          />
-          <div>
-            <div className="font-semibold text-base">{coin.name}</div>
-            <div className="text-sm text-gray-400">
-              <span>Qty:</span>
-              <input
-                type="number"
-                min="0"
-                step="any"
-                value={coin.quantity}
-                onChange={(e) =>
-                  updateQuantity(coin.id, parseFloat(e.target.value))
-                }
-                className="bg-gray-800 ml-2 p-1 w-16 rounded text-white"
-              />
-            </div>
-          </div>
-        </div>
-        <div className="text-right">
-          <div>{numeral(prices[coin.id]?.usd).format("$0,0.00")}</div>
-          <div className="text-green-500">
-            {numeral((prices[coin.id]?.usd || 0) * coin.quantity).format(
-              "$0,0.00"
-            )}
-          </div>
-        </div>
-        <button
-          onClick={() => deleteCoin(coin.id)}
-          className="text-red-400 ml-3 hover:text-red-600"
-        >
-          <X />
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#0b0b0f] text-white p-4 flex flex-col items-center">
-      <h1 className="text-3xl font-bold mb-2">your bags</h1>
-      <div className="text-lg font-semibold mb-4 text-green-400">
-        Total: {numeral(getTotalValue()).format("$0,0.00")}
-      </div>
-
-      <div className="flex gap-2 w-full max-w-md mb-4">
-        <div className="flex-grow">
-          <Select
-            options={options}
-            value={selectedCoin}
-            onChange={setSelectedCoin}
-            placeholder="Search for a coin..."
-          />
-        </div>
+    <div className="min-h-screen bg-gray-900 text-white p-4">
+      <h1 className="text-3xl font-bold mb-4">my bags</h1>
+      <div className="flex gap-2 mb-4">
+        <input
+          className="bg-white text-black px-2 py-1 rounded w-full"
+          placeholder="Enter coin id (e.g. bitcoin)"
+          value={coinInput}
+          onChange={(e) => setCoinInput(e.target.value.toLowerCase())}
+        />
         <button
           className="bg-green-500 px-4 py-2 rounded text-white font-bold"
           onClick={addCoin}
@@ -173,29 +63,35 @@ export default function App() {
           +
         </button>
       </div>
-
-      <DndContext
-        collisionDetection={closestCenter}
-        onDragEnd={(event) => {
-          const { active, over } = event;
-          if (active.id !== over?.id) {
-            const oldIndex = portfolio.findIndex((c) => c.id === active.id);
-            const newIndex = portfolio.findIndex((c) => c.id === over?.id);
-            setPortfolio(arrayMove(portfolio, oldIndex, newIndex));
-          }
-        }}
-      >
-        <SortableContext
-          items={portfolio.map((c) => c.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="grid gap-3 w-full max-w-md">
-            {portfolio.map((coin) => (
-              <SortableItem key={coin.id} coin={coin} />
-            ))}
+      <div className="grid gap-4">
+        {portfolio.map((coin) => (
+          <div key={coin.id} className="bg-gray-800 p-4 rounded shadow">
+            <div className="flex justify-between items-center">
+              <div>
+                <div className="text-lg font-semibold">{coin.name}</div>
+                <div className="text-sm text-gray-400">
+                  Quantity:{" "}
+                  <input
+                    type="number"
+                    min="0"
+                    value={coin.quantity}
+                    onChange={(e) =>
+                      updateQuantity(coin.id, parseFloat(e.target.value))
+                    }
+                    className="bg-gray-700 text-white w-20 ml-1 rounded px-1"
+                  />
+                </div>
+              </div>
+              <div className="text-right">
+                <div>${prices[coin.id]?.usd?.toFixed(2) ?? "-"}</div>
+                <div className="text-sm text-green-400">
+                  ${(prices[coin.id]?.usd * coin.quantity || 0).toFixed(2)}
+                </div>
+              </div>
+            </div>
           </div>
-        </SortableContext>
-      </DndContext>
+        ))}
+      </div>
     </div>
   );
 }
