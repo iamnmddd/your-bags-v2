@@ -158,7 +158,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 text-black p-4 flex flex-col items-center">
+    <div className="min-h-screen bg-gray-100 text-black p-4 flex flex-col items-center justify-center">
       <h1 className="text-4xl font-bold mb-2 uppercase">YOUR BAGZ</h1>
       <div className="text-2xl font-semibold mb-6 text-green-600">
         Total: {numeral(getTotalValue()).format("$0,0.00")}

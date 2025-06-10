@@ -1,42 +1,75 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f3f4f6; /* tailwind gray-100 */
+  color: #111827; /* tailwind gray-900 */
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+h1 {
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.total-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #16a34a; /* tailwind green-600 */
+  margin-bottom: 1.5rem;
 }
 
 .card {
-  padding: 2em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-.read-the-docs {
-  color: #888;
+.card img {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+}
+
+.card .info {
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.card .info .name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.card .info .price {
+  font-size: 0.875rem;
+  color: #6b7280; /* tailwind gray-500 */
+}
+
+.card .info input {
+  width: 80px;
+  padding: 0.25rem;
+  margin-left: 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  background-color: #e5e7eb; /* tailwind gray-200 */
+}
+
+.card .value {
+  font-weight: 600;
+  color: #16a34a;
+  text-align: right;
+}
+
+.card button {
+  background: none;
+  border: none;
+  color: #dc2626; /* tailwind red-600 */
+  font-size: 1.25rem;
+  margin-left: 1rem;
+  cursor: pointer;
 }
