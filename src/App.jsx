@@ -107,18 +107,18 @@ export default function App() {
         style={style}
         {...attributes}
         {...listeners}
-        className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow-md flex items-center justify-between w-full"
+        className="bg-white/10 backdrop-blur-lg p-3 rounded-lg shadow-lg flex items-center justify-between w-full border border-white/20"
       >
         <div className="flex items-center gap-3">
           <img
             src={logos[coin.id]}
             alt="logo"
-            className="w-8 h-8 rounded-full"
+            className="w-6 h-6 rounded-full"
           />
           <div>
-            <div className="font-bold text-lg">{coin.name}</div>
-            <div className="text-sm text-gray-300">
-              Quantity:
+            <div className="font-semibold text-base">{coin.name}</div>
+            <div className="text-sm text-gray-400">
+              <span>Qty:</span>
               <input
                 type="number"
                 min="0"
@@ -127,20 +127,23 @@ export default function App() {
                 onChange={(e) =>
                   updateQuantity(coin.id, parseFloat(e.target.value))
                 }
-                className="bg-gray-700 ml-2 p-1 w-20 rounded text-white"
+                className="bg-gray-800 ml-2 p-1 w-16 rounded text-white"
               />
             </div>
           </div>
         </div>
         <div className="text-right">
           <div>{numeral(prices[coin.id]?.usd).format("$0,0.00")}</div>
-          <div className="text-green-400">
+          <div className="text-green-500">
             {numeral((prices[coin.id]?.usd || 0) * coin.quantity).format(
               "$0,0.00"
             )}
           </div>
         </div>
-        <button onClick={() => deleteCoin(coin.id)} className="text-red-400 ml-4">
+        <button
+          onClick={() => deleteCoin(coin.id)}
+          className="text-red-400 ml-3 hover:text-red-600"
+        >
           <X />
         </button>
       </div>
@@ -148,9 +151,9 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-4 flex flex-col items-center">
-      <h1 className="text-4xl font-bold mb-4">your bags</h1>
-      <div className="text-xl font-semibold mb-4 text-green-400">
+    <div className="min-h-screen bg-[#0b0b0f] text-white p-4 flex flex-col items-center">
+      <h1 className="text-3xl font-bold mb-2">your bags</h1>
+      <div className="text-lg font-semibold mb-4 text-green-400">
         Total: {numeral(getTotalValue()).format("$0,0.00")}
       </div>
 
@@ -186,7 +189,7 @@ export default function App() {
           items={portfolio.map((c) => c.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="grid gap-4 w-full max-w-md">
+          <div className="grid gap-3 w-full max-w-md">
             {portfolio.map((coin) => (
               <SortableItem key={coin.id} coin={coin} />
             ))}
